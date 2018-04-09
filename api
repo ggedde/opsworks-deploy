@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+TITLE="API"
+STACK_ID="123123123-wert-4c41-234-2342v21v2vv"
+APP_ID="a98f9asf8-2345-sdfg-sdfg-dsfg3kl423425"
+REGION="us-west-1"
+PROFILE="sammy"
