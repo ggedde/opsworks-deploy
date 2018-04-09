@@ -9,3 +9,8 @@ How to use
 ```
 ./opsworks_deploy.sh api
 ```
+
+Run Multiple Apps at once
+```
+./opsworks_deploy.sh api website app app2
+```
