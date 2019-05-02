@@ -5,7 +5,16 @@ You will need to create an aws profile and individual cred files for the clie to
 See the example api file 
 
 
-### How to use
+## How to use
+
+First you will need to install the aws-cli and create a profile for each IAM role that you are using.
+
+#### Installing AWS-CLI
+https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html
+
+#### Creating a Profile
+https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html  
+https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html  
 
 For Each App create a Variables File in the same directory as the script
 Example:  
@@ -31,7 +40,7 @@ Run Multiple Apps at once
 bash /path_to_script_folder/opsworks_deploy.sh api website app app2
 ```
 
-## Create an Alias
+### Create an Alias
 You can create an Alias in your ~/.bash_profile
 ```
 alias deploy="bash /path_to_script_folder/opsworks_deploy.sh"
