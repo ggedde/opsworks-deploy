@@ -16,6 +16,19 @@ https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html
 https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html  
 https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html  
 
+Example: (creating a profile with the name of "company") 
+```
+aws configure --profile company
+```
+You will then be prompted to input the follwing:  
+```
+AWS Access Key ID [None]: ... 
+AWS Secret Access Key [None]: ... 
+Default region name [None]: ... 
+Default output format [None]: ... 
+```
+
+#### Creating an App Variable File
 For Each App create a Variables File in the same directory as the script
 Example:  
 /path_to_script_folder/api
