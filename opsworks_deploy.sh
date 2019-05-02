@@ -1,18 +1,17 @@
 #!/bin/bash
 # This script uses the AWS CLI tools to initiate and monitor an OpsWorks application deployment
+# See https://github.com/ggedde/opsworks-deploy
 
 DIR="$(dirname "$0")"
 
 source ${DIR}/ora.sh
 
-if [ -f "/tmp/opsworks_deploy.s0uDGS8sC" ]
+TEMP_FILE="/tmp/opsworks_deploy.tmp"
+
+if [ -f $TEMP_FILE ]
 then
-	rm "/tmp/opsworks_deploy.s0uDGS8sC"
+	rm $TEMP_FILE
 fi
-
-TEMP_FILE=$(mktemp "/tmp/opsworks_deploy.s0uDGS8sC")
-
-
 
 DEPLOYMENTS=()
 DEPLOYMENT_TITLES=()
@@ -93,7 +92,7 @@ function ctrl_c() {
 
 deploy_app() {
 
-	DEPLOY_RESULT=$(aws --profile $2 opsworks --region $3 create-deployment --stack-id $4 --app-id $5 --command "{\"Name\":\"deploy\"}" 2>&1 );
+	DEPLOY_RESULT=$(aws --profile $2 opsworks --region $3 create-deployment --stack-id $4 --app-id $5 --command "{\"Name\":\"deploy\"}" --output json 2>&1 );
 
 	# Remove New Lines
 	DEPLOY_RESULT=$(echo $DEPLOY_RESULT|tr -d '\n')
@@ -102,9 +101,9 @@ deploy_app() {
     if [[ $DEPLOY_RESULT =~ $deployid_re ]]
     then
     	DEPLOYMENT_ID=("${BASH_REMATCH[1]}")
-		echo "${1}|${DEPLOYMENT_ID}|running|" >> "/tmp/opsworks_deploy.s0uDGS8sC"
+		echo "${1}|${DEPLOYMENT_ID}|running|" >> $TEMP_FILE
     else
-		echo "${1}||Failed|${DEPLOY_RESULT}" >> "/tmp/opsworks_deploy.s0uDGS8sC"
+		echo "${1}||Failed|${DEPLOY_RESULT}" >> $TEMP_FILE
     fi
 
 	exit 0
@@ -132,7 +131,7 @@ check_apps() {
 	RETURN_STATUS="Complete"
 	DEPLOYMENT_IDS=()
 
-	CONTENTS=$(cat "/tmp/opsworks_deploy.s0uDGS8sC")
+	CONTENTS=$(cat ${TEMP_FILE})
 	IFS=$'\n' DEPLOYMENTS=($CONTENTS)
 
 	for d in "${!DEPLOYMENTS[@]}"
@@ -150,7 +149,7 @@ check_apps() {
 			if [ "$DEPLOYMENT_STATUS" == "running" ]
 			then
 
-				COMMAND=`aws --profile ${DEPLOYMENT_PROFILES[$DEPLOYMENT_INDEX]} opsworks --region ${DEPLOYMENT_REGIONS[$DEPLOYMENT_INDEX]} describe-deployments --deployment-ids ${DEPLOYMENT_ID}`
+				COMMAND=`aws --profile ${DEPLOYMENT_PROFILES[$DEPLOYMENT_INDEX]} opsworks --region ${DEPLOYMENT_REGIONS[$DEPLOYMENT_INDEX]} describe-deployments --deployment-ids ${DEPLOYMENT_ID} --output json`
 
 				if [[ $COMMAND =~ $status_re ]]
 				then
@@ -160,7 +159,7 @@ check_apps() {
 					then
 						RETURN_STATUS="running"
 					else
-						sed -i '.bak' "s/${DEPLOYMENT_ID}|running/${DEPLOYMENT_ID}|${STATUS}/g" /tmp/opsworks_deploy.s0uDGS8sC
+						sed -i '.bak' "s/${DEPLOYMENT_ID}|running/${DEPLOYMENT_ID}|${STATUS}/g" $TEMP_FILE
 					fi
 				else
 					RETURN_STATUS="Error"
@@ -182,10 +181,10 @@ spinner "${DEPLOYING_STATUS_MESSAGE}" deploy_apps DEPLOYMENT_DEPLOY_RESULTS
 
 while [ $HAS_RUNNING ] && [ $RETRY_COUNT -lt $RETRY_LIMIT ]
 do
-	CHECKING_STATUS_MESSAGE="${RUNNING_COLOR}Checking Apps (${NO_COLOR}${APPS_STRING}${RUNNING_COLOR})${NO_COLOR}"
+	CHECKING_STATUS_MESSAGE="${RUNNING_COLOR}Checking Apps  (${NO_COLOR}${APPS_STRING}${RUNNING_COLOR})${NO_COLOR}"
 
 	HAS_RUNNING=0
-	CONTENTS=$(cat "/tmp/opsworks_deploy.s0uDGS8sC")
+	CONTENTS=$(cat ${TEMP_FILE})
 	IFS=$'\n' DEPLOYMENTS=($CONTENTS)
 
 	for d in "${!DEPLOYMENTS[@]}"
@@ -239,9 +238,9 @@ tput cud1
 
 tput cnorm && stty echo
 
-if [ -f "/tmp/opsworks_deploy.s0uDGS8sC" ]
+if [ -f $TEMP_FILE ]
 then
-	rm "/tmp/opsworks_deploy.s0uDGS8sC"
+	rm $TEMP_FILE
 fi
 
 exit
